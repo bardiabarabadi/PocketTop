@@ -1,0 +1,39 @@
+# macOS
+.DS_Store
+
+# Xcode — user-specific state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Xcode — build output
+build/
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+# Keep Package.resolved committed for app targets
+
+# CocoaPods (not used, but ignore if ever added)
+Pods/
+
+# Carthage (not used)
+Carthage/Build/
+
+# fastlane (not used)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Go build output — the canonical committed copies of the agent binaries
+# live under PocketTop/PocketTop/Resources/ (bundled into the iOS app).
+# `make build-all` regenerates into server/pockettopd/dist/.
+server/pockettopd/dist/

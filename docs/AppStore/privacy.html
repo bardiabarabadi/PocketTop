@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PocketTop — Privacy Policy</title>
+  <meta name="description" content="Privacy policy for the PocketTop iOS app. PocketTop collects no personal data and ships no third-party SDKs.">
+  <style>
+    :root { color-scheme: light dark; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 720px;
+      margin: 2.5rem auto;
+      padding: 0 1.25rem 4rem;
+      color: #1c1c1e;
+      background: #fff;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { color: #f2f2f7; background: #000; }
+      a { color: #6cb4ff; }
+      code { background: #1c1c1e; }
+    }
+    h1 { font-size: 1.9rem; margin: 0 0 .25rem; }
+    h2 { font-size: 1.2rem; margin: 2rem 0 .5rem; }
+    .meta { color: #6e6e73; font-size: .9rem; margin-bottom: 1.5rem; }
+    a { color: #0067d8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { background: #f2f2f7; padding: .1em .35em; border-radius: 4px; font-size: .92em; }
+    ul { padding-left: 1.25rem; }
+    li { margin: .25rem 0; }
+    footer { margin-top: 3rem; color: #6e6e73; font-size: .85rem; }
+  </style>
+</head>
+<body>
+
+<h1>PocketTop Privacy Policy</h1>
+<p class="meta">Last updated: April 18, 2026</p>
+
+<p>
+  PocketTop is an iOS app that lets you monitor and act on Linux machines you
+  control. This policy describes what data the app touches, what it stores, and
+  what — if anything — leaves your device.
+</p>
+
+<h2>The short version</h2>
+<ul>
+  <li><strong>We do not collect any personal data.</strong></li>
+  <li><strong>We do not run a server that talks to the app.</strong> PocketTop talks only to the Linux machines you point it at.</li>
+  <li><strong>No analytics, no crash reporting, no third-party SDKs.</strong></li>
+  <li><strong>Your credentials live on your device,</strong> in the iOS Keychain.</li>
+</ul>
+
+<h2>What PocketTop stores on your device</h2>
+<p>
+  When you add a machine, PocketTop saves the following locally on your iPhone or iPad:
+</p>
+<ul>
+  <li>The host address, port, and username you entered.</li>
+  <li>The SSH host-key fingerprint, used to detect a changed server identity.</li>
+  <li>The TLS certificate fingerprint of the agent installed on your machine, used for certificate pinning.</li>
+  <li>The API key the agent generates during installation.</li>
+  <li>Any SSH password or SSH private key you supplied, stored in the iOS Keychain.</li>
+</ul>
+<p>
+  This data never leaves your device. It is used only to connect to the machines you
+  added. Removing a machine deletes its credentials from local storage and from
+  the Keychain. Deleting the app removes everything.
+</p>
+
+<h2>What PocketTop sends over the network</h2>
+<p>
+  PocketTop makes two kinds of outbound connections, both directly from your
+  device to the Linux machine you added:
+</p>
+<ul>
+  <li>
+    <strong>SSH (port 22 by default)</strong> — used once during initial setup to
+    upload and run the agent installer, and occasionally afterwards if the agent
+    needs to be reinstalled or recovered.
+  </li>
+  <li>
+    <strong>HTTPS to the on-host agent</strong> (<code>pockettopd</code>, default
+    port 443) — used for steady-state polling of metrics and to send process-kill
+    requests. The app pins the agent's self-signed TLS certificate; if the
+    certificate ever changes, the connection is refused.
+  </li>
+</ul>
+<p>
+  No data is sent to the developer, to Apple beyond standard App Store telemetry,
+  or to any third party.
+</p>
+
+<h2>What PocketTop does <em>not</em> do</h2>
+<ul>
+  <li>It does not phone home. There is no PocketTop backend.</li>
+  <li>It does not include any analytics, telemetry, advertising, or attribution SDK.</li>
+  <li>It does not access your contacts, photos, location, microphone, or camera.</li>
+  <li>It does not transmit your machine's metrics to anyone other than your own device.</li>
+</ul>
+
+<h2>Permissions PocketTop asks for</h2>
+<ul>
+  <li>
+    <strong>Local Network</strong> — required by iOS to allow connections to
+    private-range (RFC 1918) and link-local addresses, which is where most homelab
+    machines live. Without this permission, iOS blocks the connection at the OS level.
+  </li>
+</ul>
+
+<h2>Children</h2>
+<p>
+  PocketTop is not directed at children under 13. It does not knowingly collect
+  any information from anyone.
+</p>
+
+<h2>Open source</h2>
+<p>
+  PocketTop is open source under GPL-3.0. You can read the full iOS app and Go
+  agent source on GitHub:
+  <a href="https://github.com/bardiabarabadi/PocketTop">github.com/bardiabarabadi/PocketTop</a>.
+  If a claim in this policy doesn't match the code, the code is what's in the
+  binary — please open an issue and we will fix the policy.
+</p>
+
+<h2>Changes to this policy</h2>
+<p>
+  Material changes will be reflected in the "Last updated" date at the top of
+  this page and announced in the GitHub repository.
+</p>
+
+<h2>Contact</h2>
+<p>
+  Questions or privacy concerns: please open an issue at
+  <a href="https://github.com/bardiabarabadi/PocketTop/issues">github.com/bardiabarabadi/PocketTop/issues</a>.
+</p>
+
+<footer>
+  PocketTop is independent software. Linux is a registered trademark of Linus Torvalds.
+</footer>
+
+</body>
+</html>

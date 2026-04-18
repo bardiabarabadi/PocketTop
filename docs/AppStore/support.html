@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PocketTop — Support</title>
+  <meta name="description" content="Support and troubleshooting for the PocketTop iOS app.">
+  <style>
+    :root { color-scheme: light dark; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 760px;
+      margin: 2.5rem auto;
+      padding: 0 1.25rem 4rem;
+      color: #1c1c1e;
+      background: #fff;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { color: #f2f2f7; background: #000; }
+      a { color: #6cb4ff; }
+      code, pre { background: #1c1c1e; }
+      details { border-color: #2c2c2e; }
+    }
+    h1 { font-size: 1.9rem; margin: 0 0 .25rem; }
+    h2 { font-size: 1.25rem; margin: 2rem 0 .5rem; }
+    h3 { font-size: 1.05rem; margin: 1.25rem 0 .35rem; }
+    .meta { color: #6e6e73; font-size: .9rem; margin-bottom: 1.5rem; }
+    a { color: #0067d8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { background: #f2f2f7; padding: .1em .35em; border-radius: 4px; font-size: .92em; }
+    pre {
+      background: #f2f2f7; padding: .75rem 1rem; border-radius: 8px;
+      overflow-x: auto; font-size: .88em;
+    }
+    ol, ul { padding-left: 1.25rem; }
+    li { margin: .25rem 0; }
+    details {
+      border: 1px solid #d1d1d6; border-radius: 8px;
+      padding: .75rem 1rem; margin: .5rem 0;
+    }
+    details[open] summary { margin-bottom: .5rem; }
+    summary { cursor: pointer; font-weight: 600; }
+    .lede { font-size: 1.05rem; color: #3a3a3c; }
+    @media (prefers-color-scheme: dark) { .lede { color: #d1d1d6; } }
+    footer { margin-top: 3rem; color: #6e6e73; font-size: .85rem; }
+  </style>
+</head>
+<body>
+
+<h1>PocketTop Support</h1>
+<p class="meta">Last updated: April 18, 2026</p>
+
+<p class="lede">
+  PocketTop is an iOS app for monitoring and acting on Linux machines you
+  control. This page covers setup, common issues, and how to file a bug.
+</p>
+
+<h2>Quick start</h2>
+<ol>
+  <li>On your iPhone or iPad, open PocketTop and tap <strong>+</strong> on the home screen.</li>
+  <li>Enter the SSH host (IP or hostname), port (22 by default), and username.</li>
+  <li>Choose <strong>password</strong> or <strong>SSH key</strong> authentication.
+    For key auth, PocketTop shows you a public key to add to <code>~/.ssh/authorized_keys</code> on the target machine.</li>
+  <li>Confirm the host-key fingerprint shown by the app matches the fingerprint of your server (you can check with <code>ssh-keyscan -t ed25519 your-host | ssh-keygen -lf -</code>).</li>
+  <li>Watch the install stream. PocketTop uploads a small Go binary, runs the installer (which needs sudo for this one step), and captures an API key and TLS fingerprint when the agent comes up.</li>
+  <li>Tap the new tile on the home screen to see live metrics.</li>
+</ol>
+
+<p>Your machine needs:</p>
+<ul>
+  <li>SSH access on a port you can reach from your phone.</li>
+  <li>A user with <code>sudo</code> (or root) for the install. After install, the app does not need SSH again for normal use.</li>
+  <li>Free TCP port 443 (the installer falls back to 8443, 9443, and 18443; if <code>ufw</code> is active it will open the chosen port).</li>
+  <li><code>systemd</code> — Debian, Ubuntu, Fedora, Arch, and anything else modern.</li>
+</ul>
+
+<h2>Common issues</h2>
+
+<details>
+  <summary>"Could not connect to host" during setup</summary>
+  <p>
+    Your iPhone cannot reach the host's SSH port. Check from another device on
+    the same network:
+  </p>
+  <pre>ssh -p 22 user@your-host</pre>
+  <p>
+    If that fails too, the issue is on the network side (firewall, wrong IP,
+    SSH not running). If it succeeds, double-check the host/port you typed in
+    PocketTop, and confirm your phone is on a network that can reach that host.
+  </p>
+</details>
+
+<details>
+  <summary>"Authentication failed" with SSH key</summary>
+  <p>
+    PocketTop uses an Ed25519 keypair stored in your iOS Keychain. The setup
+    screen shows you the matching public key — paste it into
+    <code>~/.ssh/authorized_keys</code> on the target server (one line, exactly
+    as shown, no extra newlines). Re-try the setup. The same key is reused
+    across all servers you add.
+  </p>
+</details>
+
+<details>
+  <summary>The host-key fingerprint changed</summary>
+  <p>
+    The app refuses the connection if the server's SSH host key doesn't match
+    what was pinned at setup. Either the server was rebuilt, you are connecting
+    to a different machine at the same address, or something is wrong. If the
+    change is expected, remove and re-add the host in PocketTop. If it is not
+    expected, do not connect — investigate first.
+  </p>
+</details>
+
+<details>
+  <summary>The installer fails part-way through</summary>
+  <p>
+    The install runs detached on the server (under <code>systemd-run</code>) so
+    it survives the SSH connection dropping. Check the install log on the
+    server:
+  </p>
+  <pre>sudo journalctl -u run-* | tail -200
+sudo cat /var/log/pockettop-install.log   # if present</pre>
+  <p>
+    Most failures are: wrong sudo password, the chosen TCP port is already
+    bound, the server has no <code>openssl</code> available to generate the
+    self-signed cert, or there is no internet access on the server (rare —
+    install is fully offline-capable, but some distros need a one-time
+    package-manager refresh for utilities like <code>curl</code>).
+  </p>
+</details>
+
+<details>
+  <summary>The agent is reachable over HTTPS but the app shows no data</summary>
+  <p>
+    On the server:
+  </p>
+  <pre>sudo systemctl status pockettopd
+sudo journalctl -u pockettopd -n 200 --no-pager</pre>
+  <p>
+    The service should be <em>active (running)</em>. From a machine on the same
+    network as the server you can sanity-check the API:
+  </p>
+  <pre>curl -k https://your-host:443/health</pre>
+  <p>
+    Expect <code>200 OK</code>. If you see <code>connection refused</code>, the
+    service crashed. If you see <code>certificate</code>-related errors,
+    something on the server regenerated the cert — remove and re-add the host
+    in PocketTop so the app can pin the new fingerprint.
+  </p>
+</details>
+
+<details>
+  <summary>"Kill" doesn't terminate a process</summary>
+  <p>
+    The agent runs as <em>root</em>. It sends SIGTERM first, waits briefly,
+    then SIGKILL. If the process still won't die, it is a kernel-level
+    uninterruptible wait (D-state) — usually a stuck I/O. The fix is on the
+    server side, not in the app.
+  </p>
+</details>
+
+<details>
+  <summary>Local network connections fail with "operation not permitted"</summary>
+  <p>
+    iOS requires explicit permission to connect to private (RFC 1918) and
+    link-local addresses. The first time PocketTop tries this, iOS shows a
+    permission prompt. If you tapped <em>Don't Allow</em>, open
+    <strong>Settings → Privacy &amp; Security → Local Network → PocketTop</strong>
+    and turn it on.
+  </p>
+</details>
+
+<details>
+  <summary>Removing a host doesn't remove the agent on the server</summary>
+  <p>
+    Correct — by design. Removing the host in the app deletes credentials and
+    pinning from your device, but the <code>pockettopd</code> service keeps
+    running on the server. To uninstall the agent, on the server:
+  </p>
+  <pre>sudo systemctl disable --now pockettopd
+sudo rm -rf /opt/pockettop /etc/systemd/system/pockettopd.service
+sudo systemctl daemon-reload</pre>
+</details>
+
+<h2>How to file a bug or feature request</h2>
+
+<p>
+  Please file issues on GitHub:
+  <a href="https://github.com/bardiabarabadi/PocketTop/issues">github.com/bardiabarabadi/PocketTop/issues</a>.
+</p>
+<p>Useful info to include:</p>
+<ul>
+  <li>iOS version and device (iPhone 15 Pro, iPad Air, etc.).</li>
+  <li>The host's OS / distribution (e.g. Ubuntu 24.04 LTS, Debian 12, Fedora 40).</li>
+  <li>What you did, what you expected, what happened.</li>
+  <li>If something failed on the server side, the output of:
+    <pre>sudo journalctl -u pockettopd -n 200 --no-pager</pre>
+  </li>
+  <li>If something failed on the iOS side, what message the app showed (a screenshot is best).</li>
+</ul>
+
+<h2>Privacy</h2>
+<p>
+  See the
+  <a href="privacy.html">privacy policy</a>.
+  Short version: PocketTop has no backend; the app talks only to the machines
+  you point it at; we collect nothing.
+</p>
+
+<h2>Source code</h2>
+<p>
+  PocketTop is open source under GPL-3.0:
+  <a href="https://github.com/bardiabarabadi/PocketTop">github.com/bardiabarabadi/PocketTop</a>.
+</p>
+
+<footer>
+  PocketTop is independent software. Linux is a registered trademark of Linus Torvalds.
+</footer>
+
+</body>
+</html>
