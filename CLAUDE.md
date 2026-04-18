@@ -55,7 +55,7 @@ make build-all   # dist/pockettopd-linux-{amd64,arm64}
 ```
 
 Project settings worth knowing:
-- **Deployment target:** iOS 26.4 (set in `project.pbxproj`) — be deliberate before lowering it; SwiftData and several APIs the reference doc uses are iOS-17+, and some newer-OS APIs may have been assumed.
+- **Deployment target:** iOS 17.0 (set in `project.pbxproj`). SwiftData and most APIs the reference doc uses are iOS-17+, so 17 is the floor.
 - **Bundle ID:** `com.bardiabarabadi.PocketTop`.
 - **Go module path:** `github.com/bardiabarabadi/PocketTop/server/pockettopd`.
 - **Device family:** iPhone + iPad (`TARGETED_DEVICE_FAMILY = "1,2"`).
