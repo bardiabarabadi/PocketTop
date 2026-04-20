@@ -7,7 +7,7 @@ Everything to paste into App Store Connect for the initial **PocketTop 1.0** sub
 | Field | Value |
 |---|---|
 | **Name** (≤30) | `PocketTop` |
-| **Subtitle** (≤30) | `Linux & homelab monitor` |
+| **Subtitle** (≤30) | `Open-source homelab monitor` |
 | **Bundle ID** | `com.bardiabarabadi.PocketTop` |
 | **SKU** | `pockettop-ios-001` |
 | **Primary language** | English (U.S.) |
@@ -35,9 +35,9 @@ Everything to paste into App Store Connect for the initial **PocketTop 1.0** sub
 ## Promotional text (≤170 chars, editable any time without re-review)
 
 ```
-Live CPU, GPU, RAM, disk, and network for the Linux machines you actually own. See the hottest processes — tap to kill one. Without SSH on a phone keyboard.
+Live CPU, GPU, RAM, disk, and network for the Linux machines you own. Tap to kill a hot process. Open source, no cloud, no SSH on a phone keyboard.
 ```
-*(155 characters)*
+*(147 characters)*
 
 ## Description (≤4000 chars)
 
@@ -90,9 +90,9 @@ A simple tool for a small but frequent question: what is my machine doing right 
 ## Keywords (≤100 chars, comma-separated, no spaces)
 
 ```
-linux,server,monitor,ssh,homelab,htop,sysadmin,cpu,gpu,ram,process,devops,nas,vps
+linux,server,monitor,ssh,homelab,htop,sysadmin,cpu,gpu,ram,process,devops,nas,vps,opensource
 ```
-*(80 characters)*
+*(92 characters)*
 
 **Notes:**
 - No competitor app names (App Review will reject those).
@@ -109,6 +109,7 @@ First public release of PocketTop.
 • Sortable process table with one-tap process kill.
 • One-time SSH setup; certificate-pinned HTTPS for steady-state polling.
 • iPhone and iPad support.
+• Free and open source under GPL-3.0. No accounts, no cloud, no analytics.
 ```
 
 ## App Review Information

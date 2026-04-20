@@ -20,8 +20,11 @@ import Charts
 ///
 /// ### Rolling buffer size
 ///
-/// 60 samples × 5s cadence ≈ 5 minutes of history. Enough context for a
-/// sparkline glance without spending memory on each row.
+/// 300 samples at 1s resolution = 5 minutes — matches the agent's server-
+/// side ring exactly. The first `/history` response after the row appears
+/// delivers the full ring in one shot so the sparkline is pre-populated
+/// (no more "starts empty and slowly fills"); subsequent 5s-cadence polls
+/// append just the new tail since `lastTs`.
 struct ServerRow: View {
     let server: Server
 
@@ -35,7 +38,7 @@ struct ServerRow: View {
     @State private var lastErrorAt: Date?
     @State private var keyMissing: Bool = false
 
-    private static let historyCap = 60
+    private static let historyCap = 300
 
     var body: some View {
         HStack(spacing: 14) {
@@ -114,15 +117,21 @@ struct ServerRow: View {
 
     private func apply(_ resp: HistoryResponse) {
         memTotal = resp.current.mem_total
-        guard let sample = resp.samples.last else { return }
-        latest = sample
+        guard !resp.samples.isEmpty else { return }
+        latest = resp.samples.last
 
-        append(&cpuHistory, sample.cpu_pct)
-        let memPct = memTotal > 0
-            ? (Double(sample.mem_used) / Double(memTotal)) * 100.0
-            : 0
-        append(&memHistory, memPct)
-        append(&netHistory, Double(sample.net_rx_bps + sample.net_tx_bps))
+        // Consume every sample, not just the latest. The server filters
+        // by `since`, so the first response delivers the whole 5-min ring
+        // (sparkline pre-populated on open) and later responses deliver
+        // only new samples — both produce the same append loop here.
+        for sample in resp.samples {
+            append(&cpuHistory, sample.cpu_pct)
+            let memPct = memTotal > 0
+                ? (Double(sample.mem_used) / Double(memTotal)) * 100.0
+                : 0
+            append(&memHistory, memPct)
+            append(&netHistory, Double(sample.net_rx_bps + sample.net_tx_bps))
+        }
     }
 
     private func append(_ buffer: inout [Double], _ value: Double) {

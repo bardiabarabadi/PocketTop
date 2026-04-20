@@ -24,6 +24,13 @@ struct HomeView: View {
     let servers: [Server]
     let onAddTapped: () -> Void
 
+    @Environment(\.modelContext) private var modelContext
+
+    @State private var serverToRename: Server?
+    @State private var renameInput: String = ""
+    @State private var serverToDelete: Server?
+    @State private var showingHelp = false
+
     init(servers: [Server], onAddTapped: @escaping () -> Void) {
         self.servers = servers
         self.onAddTapped = onAddTapped
@@ -36,16 +43,84 @@ struct HomeView: View {
                     ServerRow(server: server)
                 }
                 .id(server.id)
+                .contextMenu {
+                    Button {
+                        beginRename(server)
+                    } label: {
+                        Label("Rename", systemImage: "pencil")
+                    }
+                    Button(role: .destructive) {
+                        serverToDelete = server
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        serverToDelete = server
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    Button {
+                        beginRename(server)
+                    } label: {
+                        Label("Rename", systemImage: "pencil")
+                    }
+                    .tint(.blue)
+                }
             }
         }
         .listStyle(.insetGrouped)
         .navigationTitle("Machines")
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showingHelp = true
+                } label: {
+                    Label("Help", systemImage: "questionmark.circle")
+                }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button(action: onAddTapped) {
                     Label("Add", systemImage: "plus")
                 }
             }
+        }
+        .sheet(isPresented: $showingHelp) {
+            HelpView()
+        }
+        .alert(
+            "Rename machine",
+            isPresented: Binding(
+                get: { serverToRename != nil },
+                set: { if !$0 { serverToRename = nil } }
+            ),
+            presenting: serverToRename
+        ) { server in
+            TextField("Name", text: $renameInput)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            Button("Save") {
+                ServerActions.rename(server, to: renameInput, in: modelContext)
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: { server in
+            Text("New name for \(server.host)")
+        }
+        .alert(
+            "Delete machine?",
+            isPresented: Binding(
+                get: { serverToDelete != nil },
+                set: { if !$0 { serverToDelete = nil } }
+            ),
+            presenting: serverToDelete
+        ) { server in
+            Button("Delete", role: .destructive) {
+                ServerActions.delete(server, from: modelContext)
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: { server in
+            Text("Removes \"\(server.name)\" from this app. The agent on the host stays installed — uninstall it on the server if you no longer need it.")
         }
         .navigationDestination(for: ServerNavigationValue.self) { nav in
             if let server = servers.first(where: { $0.id == nav.serverID }) {
@@ -61,6 +136,11 @@ struct HomeView: View {
                 )
             }
         }
+    }
+
+    private func beginRename(_ server: Server) {
+        renameInput = server.name
+        serverToRename = server
     }
 }
 

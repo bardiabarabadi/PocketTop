@@ -265,6 +265,7 @@
 				DEVELOPMENT_TEAM = 2V6DK23L8X;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pocket Top";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "PocketTop connects to your computers over the local network to show live metrics and manage processes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -301,6 +302,7 @@
 				DEVELOPMENT_TEAM = 2V6DK23L8X;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Pocket Top";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "PocketTop connects to your computers over the local network to show live metrics and manage processes.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

@@ -1,6 +1,102 @@
 import SwiftUI
 import Charts
 
+// MARK: - Centered flow layout
+//
+// Wraps a variable number of fixed-width items into as many rows as fit the
+// container width and centers each row horizontally. `LazyVGrid(.adaptive)`
+// left-aligns the wrapped row, which makes a lone fifth ring slam to the
+// edge on iPhone widths — this layout keeps the ragged row centered
+// instead.
+
+struct CenteredFlowLayout: Layout {
+    var itemSpacing: CGFloat = 12
+    var rowSpacing: CGFloat = 16
+    /// Max width proposed to each subview. The overview rings target 74pt
+    /// wide (`RingGauge.maxWidth`), so 90pt leaves headroom for the caption
+    /// while letting sizeThatFits return the subview's natural size.
+    var itemMaxWidth: CGFloat = 90
+
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout Void
+    ) -> CGSize {
+        let containerWidth = proposal.width ?? .greatestFiniteMagnitude
+        let rows = layoutRows(subviews: subviews, containerWidth: containerWidth)
+        let height = rows.reduce(0) { $0 + $1.height }
+            + rowSpacing * CGFloat(max(0, rows.count - 1))
+        // Claim the full proposed width when one is given so `placeSubviews`
+        // centers each row within the actual container, not within the
+        // natural row width (which would leave us left-aligned in the
+        // parent and defeat the whole point of this layout).
+        let reportedWidth: CGFloat
+        if let proposed = proposal.width, proposed.isFinite {
+            reportedWidth = proposed
+        } else {
+            reportedWidth = rows.map(\.width).max() ?? 0
+        }
+        return CGSize(width: reportedWidth, height: height)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout Void
+    ) {
+        let rows = layoutRows(subviews: subviews, containerWidth: bounds.width)
+        var y = bounds.minY
+        for row in rows {
+            var x = bounds.minX + (bounds.width - row.width) / 2
+            for placement in row.items {
+                subviews[placement.index].place(
+                    at: CGPoint(x: x, y: y),
+                    anchor: .topLeading,
+                    proposal: ProposedViewSize(
+                        width: placement.size.width,
+                        height: placement.size.height
+                    )
+                )
+                x += placement.size.width + itemSpacing
+            }
+            y += row.height + rowSpacing
+        }
+    }
+
+    private struct Placement { let index: Int; let size: CGSize }
+    private struct Row { let items: [Placement]; let width: CGFloat; let height: CGFloat }
+
+    private func layoutRows(subviews: Subviews, containerWidth: CGFloat) -> [Row] {
+        let proposal = ProposedViewSize(width: itemMaxWidth, height: nil)
+        var rows: [Row] = []
+        var current: [Placement] = []
+        var currentWidth: CGFloat = 0
+        var currentHeight: CGFloat = 0
+
+        for (index, subview) in subviews.enumerated() {
+            let size = subview.sizeThatFits(proposal)
+            let next = current.isEmpty
+                ? size.width
+                : currentWidth + itemSpacing + size.width
+            if !current.isEmpty && next > containerWidth {
+                rows.append(Row(items: current, width: currentWidth, height: currentHeight))
+                current = [Placement(index: index, size: size)]
+                currentWidth = size.width
+                currentHeight = size.height
+            } else {
+                current.append(Placement(index: index, size: size))
+                currentWidth = next
+                currentHeight = max(currentHeight, size.height)
+            }
+        }
+        if !current.isEmpty {
+            rows.append(Row(items: current, width: currentWidth, height: currentHeight))
+        }
+        return rows
+    }
+}
+
 // MARK: - Ring gauge (Overview section)
 
 /// Circular progress ring with a label + big value in the centre. Used for

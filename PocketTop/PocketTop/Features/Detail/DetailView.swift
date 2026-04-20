@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 /// Stacked-scroll live dashboard for one server. Polls `/history` at 1 Hz
 /// and displays four sections:
@@ -16,6 +17,8 @@ struct DetailView: View {
     let server: Server
 
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
 
     // MARK: Live state
 
@@ -43,6 +46,12 @@ struct DetailView: View {
     /// flips this; the polling stream restarts with `procs=nil` (full
     /// list) via `runToken`.
     @State private var showingAllProcesses = false
+
+    // MARK: Rename / delete
+
+    @State private var showingRename = false
+    @State private var renameInput: String = ""
+    @State private var showingDeleteConfirm = false
 
     /// Trim the client buffer to this many entries (matches server ring).
     private static let maxSamples = 300
@@ -78,6 +87,45 @@ struct DetailView: View {
         }
         .navigationTitle(server.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button {
+                        renameInput = server.name
+                        showingRename = true
+                    } label: {
+                        Label("Rename", systemImage: "pencil")
+                    }
+                    Button(role: .destructive) {
+                        showingDeleteConfirm = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Label("More", systemImage: "ellipsis.circle")
+                }
+            }
+        }
+        .alert("Rename machine", isPresented: $showingRename) {
+            TextField("Name", text: $renameInput)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            Button("Save") {
+                ServerActions.rename(server, to: renameInput, in: modelContext)
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("New name for \(server.host)")
+        }
+        .alert("Delete machine?", isPresented: $showingDeleteConfirm) {
+            Button("Delete", role: .destructive) {
+                ServerActions.delete(server, from: modelContext)
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Removes \"\(server.name)\" from this app. The agent on the host stays installed — uninstall it on the server if you no longer need it.")
+        }
         .task(id: runToken) {
             await run()
         }
@@ -86,13 +134,17 @@ struct DetailView: View {
                 runToken &+= 1
             }
         }
-        .confirmationDialog(
-            killTarget.map { "Kill \($0.name) (PID \($0.pid))?" } ?? "",
+        // `.alert` instead of `.confirmationDialog`: the latter renders as a
+        // popover on iPad anchored to the attached view — buried inside the
+        // scroll container, that anchor lands at a confusing spot. An
+        // alert is centered on every device size and matches the rename /
+        // delete confirmations elsewhere in the app.
+        .alert(
+            "Kill process?",
             isPresented: Binding(
                 get: { killTarget != nil },
                 set: { if !$0 { killTarget = nil } }
             ),
-            titleVisibility: .visible,
             presenting: killTarget
         ) { proc in
             Button("Terminate (SIGTERM)") {
@@ -102,6 +154,11 @@ struct DetailView: View {
                 Task { await sendKill(proc: proc, signal: .kill) }
             }
             Button("Cancel", role: .cancel) { }
+        } message: { proc in
+            // `String(proc.pid)` (not `"\(proc.pid)"`) bypasses
+            // LocalizedStringKey's integer formatter — otherwise a PID of
+            // 1000 renders as "1,000" which reads like a comma list.
+            Text("\(proc.name) — PID \(String(proc.pid))")
         }
         .overlay(alignment: .bottom) {
             if let toast {
@@ -118,15 +175,11 @@ struct DetailView: View {
     private var overviewSection: some View {
         SectionCard(title: "Overview", systemImage: "gauge.with.dots.needle.50percent") {
             VStack(alignment: .leading, spacing: 18) {
-                // Rings grid — adaptive columns wrap to multiple rows on
-                // narrow screens (e.g. 5+ rings on iPhone SE widths). Each
-                // column is at least 64pt, at most 90pt; RingGauge scales
-                // inside via aspectRatio.
-                LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 64, maximum: 90), spacing: 12)],
-                    alignment: .center,
-                    spacing: 16
-                ) {
+                // Rings flow — wraps to multiple rows on narrow screens (e.g.
+                // 5+ rings on iPhone widths) and keeps each row centered.
+                // `LazyVGrid(.adaptive)` would left-align the wrapped row
+                // which looks lopsided when only a single ring sits alone.
+                CenteredFlowLayout(itemSpacing: 12, rowSpacing: 16) {
                     RingGauge(
                         label: "CPU",
                         fraction: (latest?.cpu_pct ?? 0) / 100,

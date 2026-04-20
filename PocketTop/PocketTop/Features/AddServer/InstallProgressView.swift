@@ -100,7 +100,7 @@ struct InstallProgressView: View {
         .navigationTitle("Installing")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
+            ToolbarItem(placement: .topBarTrailing) {
                 switch phase {
                 case .running, .finalizing:
                     Button("Cancel") { cancelInstall() }
