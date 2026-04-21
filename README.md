@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="screenshots/Export/Artboard%202.png" width="120" alt="PocketTop app icon — green $top glyph on a dark terminal background" />
+</p>
+
 # PocketTop
 
 > A pocket-sized view of what your machines are doing — and a way to act on it.
@@ -18,9 +22,12 @@ Full product pitch → [`docs/Executive Summary.md`](docs/Executive%20Summary.md
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/Shot-1.jpg" width="260" alt="Overview — CPU, GPU, RAM, Disk I/O, Net rings; per-mount storage fills; uptime and load" />
-  <img src="screenshots/Shot-2.jpg" width="260" alt="Usage timelines for disk I/O and network; Power & Thermal — CPU and GPU watts + temperatures" />
-  <img src="screenshots/Shot-3.jpg" width="260" alt="Per-process table with sortable columns and a Show-all expansion" />
+  <img src="screenshots/Export/Artboard%201%20copy.png" width="220" alt="Home screen — list of monitored machines with live CPU, memory, and network sparklines per tile" />
+  <img src="screenshots/Export/Artboard%201.png" width="220" alt="Overview — CPU, GPU, RAM, Disk I/O, and Net rings; per-mount storage fills; uptime and load average" />
+  <img src="screenshots/Export/Artboard%201%20copy%205.png" width="220" alt="Usage timelines for Disk I/O and Network; Power &amp; Thermal panel with CPU and GPU watts and temperatures" />
+  <img src="screenshots/Export/Artboard%201%20copy%202.png" width="220" alt="Per-process table sorted by CPU with a SIGTERM / SIGKILL confirmation sheet" />
+  <img src="screenshots/Export/Artboard%201%20copy%203.png" width="220" alt="Install complete — SSH once, the agent installs itself, cert-pinned HTTPS, keys in Keychain" />
+  <img src="screenshots/Export/Artboard%201%20copy%204.png" width="220" alt="PocketTop repo on GitHub — free and open source under GPL-3.0" />
 </p>
 
 ## How it works
