@@ -294,9 +294,17 @@ cmd_install() {
     if [ -z "$server_ip" ]; then
         fail "could not detect public IP for certificate SAN"
     fi
-    # EC prime256v1 key + 10-year cert. SAN must include both the public IP
-    # (so iOS 14+ clients accept it — CN alone is ignored) and 127.0.0.1
-    # (so the in-process health check loop below works without dns).
+    # EC prime256v1 key + 397-day cert. iOS 13+ rejects TLS server certs
+    # that don't meet ALL of the following at Secure Transport level
+    # (errSSLFatalAlert / -9802), BEFORE URLSession's auth-challenge
+    # delegate runs — so pinning cannot override them:
+    #   1. SAN must include the IP the client connects to (plain CN is
+    #      ignored since iOS 14).
+    #   2. `extendedKeyUsage=serverAuth` must be present.
+    #   3. `basicConstraints` must say `CA:FALSE`.
+    #   4. Validity ≤ 398 days (per Apple's TLS trust requirements for
+    #      certs issued on/after 2020-09-01).
+    # 127.0.0.1 is also in SAN so the in-process health check works.
     local san
     if [ "$server_ip" = "127.0.0.1" ]; then
         san="IP:127.0.0.1"
@@ -308,9 +316,11 @@ cmd_install() {
             -nodes \
             -keyout "$KEY_PATH" \
             -out "$CERT_PATH" \
-            -days 3650 \
+            -days 397 \
             -subj "/CN=pockettop" \
             -addext "subjectAltName=${san}" \
+            -addext "extendedKeyUsage=serverAuth" \
+            -addext "basicConstraints=critical,CA:FALSE" \
             >/dev/null 2>&1; then
         fail "openssl cert generation failed"
     fi
