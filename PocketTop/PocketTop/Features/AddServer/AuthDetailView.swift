@@ -60,6 +60,7 @@ struct AuthDetailView: View {
     @State private var parseState: ParseState = .idle
     @State private var showingFileImporter = false
     @State private var showingAppKeyLoadError: String?
+    @State private var isPasswordRevealed = false
     @FocusState private var focus: Field?
 
     var body: some View {
@@ -124,7 +125,14 @@ struct AuthDetailView: View {
     @ViewBuilder
     private var passwordSection: some View {
         Section {
-            SecureField("SSH Password", text: $state.sshPassword)
+            HStack {
+                Group {
+                    if isPasswordRevealed {
+                        TextField("SSH Password", text: $state.sshPassword)
+                    } else {
+                        SecureField("SSH Password", text: $state.sshPassword)
+                    }
+                }
                 .textContentType(.password)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
@@ -136,6 +144,16 @@ struct AuthDetailView: View {
                         onContinue()
                     }
                 }
+
+                Button {
+                    isPasswordRevealed.toggle()
+                } label: {
+                    Image(systemName: isPasswordRevealed ? "eye.slash" : "eye")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(isPasswordRevealed ? "Hide password" : "Show password")
+            }
         } header: {
             Text("Password")
         } footer: {
