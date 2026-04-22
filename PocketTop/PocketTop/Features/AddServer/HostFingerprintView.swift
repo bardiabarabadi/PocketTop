@@ -50,7 +50,7 @@ struct HostFingerprintView: View {
                     onTrust()
                 } label: {
                     Label("Trust this host", systemImage: "checkmark.seal")
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
                 .buttonStyle(.borderedProminent)
             }
